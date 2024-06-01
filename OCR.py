@@ -61,16 +61,18 @@ def extract_details_from_pdf(pdffile):
                     "C.1 NPWP text": specific_text_c3,
                     "Specific amount1": specific_amount1,
                     "Specific amount2": specific_amount2,
-                    "Date": invoice_date
+                    "Date": invoice_date,
+                    "PDF_Name" : pdffile
                 })
             else:
                 extracted_details.append({
-                    "H.1 NOMOR text": "No text extracted",
-                    "C.2 Nama Wajib Pajak text": "No text extracted",
-                    "C.1 NPWP text": "No text extracted",
-                    "Specific amount1": "No text extracted",
-                    "Specific amount2": "No text extracted",
-                    "Date": "No text extracted"
+                    "H.1 NOMOR text": "Error! Please Check The File",
+                    "C.2 Nama Wajib Pajak text": "Error! Please Check The File",
+                    "C.1 NPWP text": "Error! Please Check The File",
+                    "Specific amount1": "Error! Please Check The File",
+                    "Specific amount2": "Error! Please Check The File",
+                    "Date": "Error! Please Check The File",
+                    "PDF_Name" : pdffile
                 })
 
     return extracted_details
@@ -109,7 +111,7 @@ if uploaded_files:
     }, inplace=True)
 
     # Reordering columns to match the desired format
-    df = df[['NO', 'Nama_Pemotong', 'NPWP_Pemotong', 'Pasal', 'Pph', 'Nilai_Obj_Pemotongan', 'Pph_potput', 'Nomor_Bukti', 'Tanggal', 'Alamat', 'NTPN']]
+    df = df[['NO', 'PDF_Name' , 'Nama_Pemotong', 'NPWP_Pemotong', 'Pasal', 'Pph', 'Nilai_Obj_Pemotongan', 'Pph_potput', 'Nomor_Bukti', 'Tanggal', 'Alamat', 'NTPN']]
 
     # Convert numeric values to integers
     # df['Nilai_Obj_Pemotongan'] = pd.to_numeric(df['Nilai_Obj_Pemotongan'], errors='coerce').fillna(0).astype(int)
@@ -122,8 +124,8 @@ if uploaded_files:
     def remove_suffix(amount):
         # Remove .00 suffix
         return re.sub(r'\.00$', '', amount)
-    df['Nilai_Obj_Pemotongan'] = df['Nilai_Obj_Pemotongan'].apply(remove_suffix)
-    df['Pph_potput'] = df['Pph_potput'].apply(remove_suffix)
+    # df['Nilai_Obj_Pemotongan'] = df['Nilai_Obj_Pemotongan'].apply(remove_suffix)
+    # df['Pph_potput'] = df['Pph_potput'].apply(remove_suffix)
 
     # Display the DataFrame
     st.write(df)
