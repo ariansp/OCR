@@ -62,7 +62,7 @@ def extract_details_from_pdf(pdffile):
                     "Specific amount1": specific_amount1,
                     "Specific amount2": specific_amount2,
                     "Date": invoice_date,
-                    "PDF_Name" : pdffile
+                    "PDF_Name" : pdffile.name
                 })
             else:
                 extracted_details.append({
@@ -72,7 +72,7 @@ def extract_details_from_pdf(pdffile):
                     "Specific amount1": "Error! Please Check The File",
                     "Specific amount2": "Error! Please Check The File",
                     "Date": "Error! Please Check The File",
-                    "PDF_Name" : pdffile
+                    "PDF_Name" : pdffile.name
                 })
 
     return extracted_details
