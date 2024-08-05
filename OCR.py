@@ -1,8 +1,8 @@
 import streamlit as st
 import pdfplumber
-import re
 import pandas as pd
 from io import BytesIO
+import re
 
 def extract_details_from_pdf(pdffile):
     with pdfplumber.open(pdffile) as pdf:
@@ -10,8 +10,35 @@ def extract_details_from_pdf(pdffile):
 
         for i, page in enumerate(pdf.pages):
             text = page.extract_text()
+            # print(f"pages "{i})
+            # st.write(text)
             if text:
                 text = text.replace(',', '.').lower()
+
+                nama_a = re.search(r"a\.(.*) nama :\s*(.*)", text)
+                v_namaa = nama_a.group(2) if nama_a else "Data Not Found"
+
+                nitku_a = re.search(r"a\.(.*) nitku :\s*(.*)", text)
+                st.write(nitku_a)
+                v_nitkua = nitku_a.group(2) if nitku_a else "Data Not Found"
+
+                nitku_a1 = re.findall(r"a\.(.*) nik :\s*(.*)", text)
+                nik_a = re.search(r"a\.(.*) nik :\s*(.*)", text)
+                v_nika = nik_a.group(2)
+                # st.write(v_nika)
+
+                if v_nika == nitku_a1[0][1]:
+                    v_nika = "Data Not Found"
+                else:
+                    nik_a = re.search(r"a\.\d+ nik :\s*(\S+)", text)
+                    v_nika = nik_a.group(1)
+
+                # if  nik_a1:
+                #     nik_a = nik_a1
+                #     v_nika = "No Data Found"
+                # else:
+                #     nik_a = re.search(r"a\.(.*) nik :\s*(.*) a\.(.*) nitku :\s*(.*)", text)
+                #     v_nika = nik_a.group(2)
 
                 match_h1 = re.search(r'h\.1 nomor :\s*((?:\d\s*)+)', text)
                 specific_text_h1 = match_h1.group(1).replace(" ", "") if match_h1 else "Pattern not found for H.1 NOMOR :"
@@ -31,18 +58,20 @@ def extract_details_from_pdf(pdffile):
                 match_doc_ref = re.search(r'b\.7 dokumen referensi : nomor dokumen (\w+)', text)
                 specific_doc_ref = match_doc_ref.group(1).strip() if match_doc_ref else "Data not found"
 
-                pph = re.search(r'(\d{1,3}(?:\.\d{3})\.\d{1,3}) (\d)(?:\.\d{2})? (\d{1,3}(?:\.\d{3})*\.\d{1,3})', text)
+                pph = re.search(r'(\d{2}-\d{4}) (\d{2}-\d{3}-\d{2}) (\d{1,3}(?:\.\d{3})*) (\d{1,2}\.\d{2}) (\d{1,4}(?:\.\d{3})*)', text)
                 tarif_tinggi = 0
                 if pph:
                     match_amount2 = pph
-                    specific_amount2 = match_amount2.group(3)
+                    specific_amount2 = match_amount2.group(5)
                 else:
-                    match_amount2 = re.search(r'(\d{1,3}(?:\.\d{3})\.\d{2}) (\d) (\d)(?:\.\d{2})? (\d{1,3}(?:\.\d{3})*\.\d{1,3})', text)
+                    match_amount2 = re.search(r'(\d{2}-\d{4}) (\d{2}-\d{3}-\d{2}) (\d{1,3}(?:\.\d{3})*) (\d) (\d{1,2}\.\d{2}) (\d{1,4}(?:\.\d{3})*)', text)
                     if match_amount2:
-                        specific_amount2 = match_amount2.group(4)
-                        tarif_tinggi = match_amount2.group(2)
+                        specific_amount2 = match_amount2.group(6)
+                        tarif_tinggi = match_amount2.group(4)
                     else:
                         specific_amount2 = "Amount not found"
+                # st.write(specific_amount2)
+                # st.write(match_amount2)
 
                 match_date_1 = re.search(r'c\.3 tanggal : (\d\s\d) dd (\d\s\d) mm (\d\s\d\s\d\s\d)', text)
                 if match_date_1:
@@ -122,22 +151,27 @@ def extract_details_from_pdf(pdffile):
                         else:
                             invoice_date_2 = "Date not found2"
 
-                stat_pembetulan1 = re.search(r'direktorat jenderal pajak h\.2 (.*) pembetulan ke- (.*) h\.3 pembatalan h\.5 (.*) pph tidak final', text)
+                stat_pembetulan1 = re.search(r'h\.2 (.*) pembetulan (.*) (.*) h\.3 pembatalan h\.5 (.*) pph tidak final', text)
                 status_pembatalan = ''
                 nilai_pembetulan = 0
                 status_pph_tidakfinal = ''
+                status_pembetulan = ''
+                # st.write(i)
+                # st.write(text)
                 if stat_pembetulan1:
                     stat_pembetulan = stat_pembetulan1
+                    # st.write(stat_pembetulan)
                     status_pembetulan = stat_pembetulan.group(1).replace(' ','')
-                    nilai_pembetulan = stat_pembetulan.group(2).replace(' ','')
-                    status_pph_tidakfinal = stat_pembetulan.group(3).replace(' ','')
+                    nilai_pembetulan = stat_pembetulan.group(3).replace(' ','')
+                    status_pph_tidakfinal = stat_pembetulan.group(4).replace(' ','')
                     # st.write(status_pembetulan,nilai_pembetulan,status_pph_tidakfinal)
                 else:
-                    stat_pembetulan = re.search(r'direktorat jenderal pajak h\.2 (.*) pembetulan ke- (.*) h\.3 (.*) pembatalan h\.5 (.*) pph tidak final', text)
+                    stat_pembetulan = re.search(r'h\.2 (.*) pembetulan (.*) (.*) h\.3 (.*) pembatalan h\.5 (.*) pph tidak final final', text)
                     status_pembetulan = stat_pembetulan.group(1).replace(' ','')
-                    nilai_pembetulan = stat_pembetulan.group(2).replace(' ','')
-                    status_pembatalan = stat_pembetulan.group(3).replace(' ','')
-                    status_pph_tidakfinal = stat_pembetulan.group(4).replace(' ','')
+                    nilai_pembetulan = stat_pembetulan.group(3).replace(' ','')
+                    status_pembatalan = stat_pembetulan.group(4).replace(' ','')
+                    status_pph_tidakfinal = stat_pembetulan.group(5).replace(' ','')
+
 
                 if status_pembetulan == 'x' or status_pembetulan == 'X':
                     status_pembetulan = 'Yes'
@@ -180,7 +214,11 @@ def extract_details_from_pdf(pdffile):
                     "Status PPH Tidak Final" : status_pph_tidakfinal,
                     "Status Pembatalan" : status_pembatalan,
                     "Tarif Tanpa NPWP" : tarif_tinggi,
+                    "NITKU" : v_nitkua,
+                    "A.4 Nama" : v_namaa,
+                    "a.2 NIK" : v_nika,
                     "PDF_Name" : pdffile.name
+
                 })
             else:
                 extracted_details.append({
@@ -200,6 +238,9 @@ def extract_details_from_pdf(pdffile):
                     "Status PPH Final" : "Error! Please Check The File",
                     "Status PPH Tidak Final" : "Error! Please Check The File",
                     "Status Pembatalan" : "Error! Please Check The File",
+                    "NITKU" : "Error! Please Check The File",
+                    "A.4 Nama" : "Error! Please Check The File",
+                    "a.2 NIK" : "Error! Please Check The File",
                     "PDF_Name" : pdffile.name
                 })
 
@@ -246,11 +287,15 @@ if uploaded_files:
         "Status PPH Tidak Final" : "Status_PPH_Tidak_Final",
         "Status Pembatalan" : "Status_Pembatalan",
         "Tarif Tanpa NPWP": "Tarif_Tanpa_NPWP",
-        "Nomor Faktur Pajak": "Nomor_Faktur_Pajak"
+        "Nomor Faktur Pajak": "Nomor_Faktur_Pajak",
+        "NITKU" : "NITKU",
+        "A.4 Nama" : "Nama_Dipotong",
+        "a.2 NIK" : "NIK_Dipotong"
+
     }, inplace=True)
 
     # Reordering columns to match the desired format
-    df = df[['NO', 'PDF_Name', 'Nama_Pemotong', 'NPWP_Pemotong', 'Pasal', 'Pph', 'Status_Pembetulan', 'Nilai_Pembetulan', 'Status_PPH_Final', 'Status_PPH_Tidak_Final', 'Status_Pembatalan', 'Nilai_Obj_Pemotongan', 'Pph_potput', 'Tarif_Tanpa_NPWP', 'Nomor_Faktur_Pajak', 'Nomor_Bukti', 'Tanggal', 'Tanggal_Dokumen','Nomor_Dokumen','Nama_Dokumen', 'Alamat', 'NTPN']]
+    df = df[['NO', 'PDF_Name','NITKU', 'Nama_Dipotong', 'NIK_Dipotong', 'Nama_Pemotong', 'NPWP_Pemotong', 'Pasal', 'Pph', 'Status_Pembetulan', 'Nilai_Pembetulan', 'Status_PPH_Final', 'Status_PPH_Tidak_Final', 'Status_Pembatalan', 'Nilai_Obj_Pemotongan', 'Pph_potput', 'Tarif_Tanpa_NPWP', 'Nomor_Faktur_Pajak', 'Nomor_Bukti', 'Tanggal', 'Tanggal_Dokumen','Nomor_Dokumen','Nama_Dokumen', 'Alamat', 'NTPN']]
 
     # Convert date columns to datetime format
     df['Tanggal'] = pd.to_datetime(df['Tanggal'], format='%Y-%m-%d', errors='coerce').dt.strftime('%Y-%m-%d')
