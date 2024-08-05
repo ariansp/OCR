@@ -19,7 +19,7 @@ def extract_details_from_pdf(pdffile):
                 v_namaa = nama_a.group(2) if nama_a else "Data Not Found"
 
                 nitku_a = re.search(r"a\.(.*) nitku :\s*(.*)", text)
-                st.write(nitku_a)
+                # st.write(nitku_a)
                 v_nitkua = nitku_a.group(2) if nitku_a else "Data Not Found"
 
                 nitku_a1 = re.findall(r"a\.(.*) nik :\s*(.*)", text)
