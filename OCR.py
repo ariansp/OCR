@@ -73,7 +73,7 @@ def extract_details_from_pdf(pdffile):
                 # st.write(specific_amount2)
                 # st.write(match_amount2)
 
-                match_date_1 = re.search(r'c\.3 tanggal : (\d\s\d) dd (\d\s\d) mm (\d\s\d\s\d\s\d)', text)
+                match_date_1 = re.search(r'c\.\d+ tanggal : (\d\s\d) dd (\d\s\d) mm (\d\s\d\s\d\s\d)', text)
                 if match_date_1:
                     match_date = match_date_1
                     day = match_date.group(1).replace(" ", "")
@@ -81,7 +81,7 @@ def extract_details_from_pdf(pdffile):
                     year = match_date.group(3).replace(" ", "")
                     invoice_date = f"{year}-{month}-{day}"
                 else:
-                    match_date = re.search(r'c\.3 tanggal : (\d\s\d) (\d\s\d) (\d\s\d\s\d\s\d)', text)
+                    match_date = re.search(r'c\.\d+ tanggal : (\d\s\d) (\d\s\d) (\d\s\d\s\d\s\d)', text)
                     if match_date:
                         day = match_date.group(1).replace(" ", "")
                         month = match_date.group(2).replace(" ", "")
