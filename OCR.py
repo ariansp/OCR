@@ -59,8 +59,8 @@ def extract_details_from_pdf(pdffile):
 
                 pph = re.search(r'(\d{1,2}-\d{4}) (\d{2}-\d{3}-\d{2}) (.*) (.*) (.*)', text)
                 # pph = re.search(r'(\d{1,2}-\d{4}) (\d{2}-\d{3}-\d{2}) (\d{1,3}(?:\.\d{3}){1,2}(?:\.\d{2,3})?) (.*) (\d{1,3}(?:\.\d{3}){1,2}(?:\.\d{2,3})?)', text)
-                st.write("PPH : ",pph)
-                st.write("Text : ",text)
+                # st.write("PPH : ",pph)
+                # st.write("Text : ",text)
                 tarif_tinggi = 0
                 if pph:
                     match_amount2 = pph
