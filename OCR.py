@@ -57,15 +57,17 @@ def extract_details_from_pdf(pdffile):
                 match_doc_ref = re.search(r'b\.7 dokumen referensi : nomor dokumen (.*)', text)
                 specific_doc_ref = match_doc_ref.group(1).strip() if match_doc_ref else "Data not found"
 
-                pph = re.search(r'(\d{1,2}-\d{4}) (\d{2}-\d{3}-\d{2}) (\d{1,3}(?:\.\d{3}){1,2}(?:\.\d{2,3})?) (\d{1,2}\.\d{2}) (\d{1,3}(?:\.\d{3}){1,2})', text)
-                # st.write("PPH : ",pph)
-                # st.write("Text : ",text)
+                pph = re.search(r'(\d{1,2}-\d{4}) (\d{2}-\d{3}-\d{2}) (.*) (.*) (.*)', text)
+                # pph = re.search(r'(\d{1,2}-\d{4}) (\d{2}-\d{3}-\d{2}) (\d{1,3}(?:\.\d{3}){1,2}(?:\.\d{2,3})?) (.*) (\d{1,3}(?:\.\d{3}){1,2}(?:\.\d{2,3})?)', text)
+                st.write("PPH : ",pph)
+                st.write("Text : ",text)
                 tarif_tinggi = 0
                 if pph:
                     match_amount2 = pph
                     specific_amount2 = match_amount2.group(5)
                 else:
-                    match_amount2 = re.search(r'(\d{1,2}-\d{4}) (\d{2}-\d{3}-\d{2}) (\d{1,3}(?:\.\d{3}){1,2}(?:\.\d{2,3})?) (\d) (\d{1,2}\.\d{2}) (\d{1,3}(?:\.\d{3}){1,2})', text)
+                    match_amount2 = re.search(r'(\d{1,2}-\d{4}) (\d{2}-\d{3}-\d{2}) (.*) (.*) (.*) (.*)', text)
+                    # match_amount2 = re.search(r'(\d{1,2}-\d{4}) (\d{2}-\d{3}-\d{2}) (\d{1,3}(?:\.\d{3}){1,2}(?:\.\d{2,3})?) (\d) (\d{1,2}\.\d{2}) (\d{1,3}(?:\.\d{3}){1,2}(?:\.\d{2,3})?)', text)
                     if match_amount2:
                         specific_amount2 = match_amount2.group(6)
                         tarif_tinggi = match_amount2.group(4)
