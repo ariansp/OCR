@@ -2,6 +2,6 @@ pdfplumber
 pandas
 streamlit
 xlsxwriter
-streamlit-navigation-bar
+streamlit_option_menu
 azure-core
 azure-ai-documentintelligence
