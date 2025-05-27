@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_navigation_bar import st_navbar
 import pdfplumber
 import pandas as pd
 from io import BytesIO
@@ -7,32 +6,30 @@ import re
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest
+from streamlit_option_menu import option_menu
 
 st.set_page_config(initial_sidebar_state="collapsed")
 
-pages = ["PPH - OLD", "PPH - 2025"]
-styles = {
-    "nav": {
-        "background-color": "#293771",
-    },
-    "div": {
-        "max-width": "32rem",
-    },
-    "span": {
-        "border-radius": "0.5rem",
-        "color": "#FFFFFF",
-        "margin": "0 0.125rem",
-        "padding": "0.4375rem 0.625rem",
-    },
-    "active": {
-        "background-color": "rgba(255, 255, 255, 0.25)",
-    },
-    "hover": {
-        "background-color": "rgba(255, 255, 255, 0.35)",
-    },
-}
-
-page = st_navbar(pages, styles=styles)
+# Top navigation bar
+page = option_menu(
+    menu_title=None,
+    options=["PPH - OLD", "PPH - 2025"],
+    icons=["clock-history", "calendar3"],
+    orientation="horizontal",
+    styles={
+        "container": {"padding": "0!important", "background-color": "#293771"},
+        "icon": {"color": "white", "font-size": "18px"},
+        "nav-link": {
+            "font-size": "16px",
+            "text-align": "center",
+            "margin": "0px",
+            "color": "white",
+            "border-radius": "0.5rem",
+            "padding": "0.4375rem 0.625rem",
+        },
+        "nav-link-selected": {"background-color": "rgba(255, 255, 255, 0.25)"},
+    }
+)
 
 if page == "PPH - OLD":
     # st.write("This is the PPH - OLD page. Here you can add the specific job or content related to PPH - OLD.")
