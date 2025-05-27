@@ -2,3 +2,4 @@ pdfplumber
 pandas
 streamlit
 xlsxwriter
+streamlit-navigation-bar
