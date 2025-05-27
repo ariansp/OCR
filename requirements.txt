@@ -3,3 +3,5 @@ pandas
 streamlit
 xlsxwriter
 streamlit-navigation-bar
+azure-core
+azure-ai-documentintelligence
