@@ -7,6 +7,11 @@ from azure.core.credentials import AzureKeyCredential
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest
 from streamlit_option_menu import option_menu
+import time
+from azure.core.pipeline.transport import HttpRequest, HttpResponse
+from azure.core.exceptions import HttpResponseError
+
+
 
 st.set_page_config(initial_sidebar_state="collapsed")
 
@@ -371,10 +376,6 @@ if page == "PPH - OLD":
 
 elif page == "PPH - 2025":
     # st.write("This is the PPH - 2025 page. Here you can add the specific job or content related to PPH - 2025.")
-    # Add your code for PPH - 2025 job here
-    # Streamlit app
-    st.title('OCS - PPH 2025')
-
     # Azure credentials
     endpoint = st.secrets["ocrendpoint"]
     key = st.secrets["ocrkey"]
@@ -390,52 +391,86 @@ elif page == "PPH - 2025":
 
     if uploaded_files:
         all_extracted_fields = []
+        total_scan = 0
 
         for uploaded_file in uploaded_files:
-
-            # Save uploaded file
-            with open(uploaded_file.name, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-
-            # Analyze document
-            with open(uploaded_file.name, "rb") as f:
-                poller = document_intelligence_client.begin_analyze_document(
-                    model_id=model_id,
-                    body=f,
-                    content_type="application/pdf"
-                )
-                result = poller.result()
-
-            # Extract fields
-            extracted_fields = {"Document": uploaded_file.name}
-            for document in result.documents:
-                for name, field in document.fields.items():
-                    extracted_fields[name] = field.content
-
-            all_extracted_fields.append(extracted_fields)
-
-        # Combine all extracted fields into a single DataFrame
-        combined_df = pd.DataFrame(all_extracted_fields).fillna("")
-
-        # Display and download
-        st.subheader("Combined Extracted Fields")
-        st.dataframe(combined_df)
-        st.download_button(
-            label="Download as CSV",
-            data=combined_df.to_csv(index=False).encode('utf-8'),
-            file_name="combined_extracted_fields.csv",
-            mime="text/csv"
-        )
+            total_scan +=1
         
-     # Excel download
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:        
-            combined_df.to_excel(writer, index=False, sheet_name='Extracted Data')
-        output.seek(0)           
-                    
-        st.download_button(
-            label="Download as Excel",
-            data=output,
-            file_name="combined_extracted_fields.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+            # Toast-style progress updates
+            msg = st.toast(f"📄 Scanning {total_scan} of {len(uploaded_files)} files...")
+            time.sleep(3)
+            msg.toast("🔍 Analyzing document...")
+            time.sleep(1)
+
+            max_retries = 5
+            retry_delay = 5  # seconds
+            result = None
+
+            with st.spinner(f"Analyzing {uploaded_file.name}..."):
+                for attempt in range(max_retries):
+                    try:
+                        file_stream = BytesIO(uploaded_file.getvalue())
+                        poller = document_intelligence_client.begin_analyze_document(
+                            model_id=model_id,
+                            body=file_stream,
+                            content_type="application/pdf"
+                        )
+                        result = poller.result(timeout=30)
+
+                        # Optional: Access raw HTTP response for debugging
+                        try:
+                            raw_response = poller._polling_method._initial_response
+                            status_code = raw_response.http_response.status_code
+                            headers = dict(raw_response.http_response.headers)
+                            body_preview = raw_response.http_response.text()[:1000]
+                            # Uncomment below to debug
+                            # st.text(f"HTTP Status Code: {status_code}")
+                            # st.text(f"HTTP Headers: {headers}")
+                            # st.text(f"Raw Response Body (truncated): {body_preview}")
+                        except Exception as debug_error:
+                            st.warning(f"Could not retrieve raw HTTP response: {debug_error}")
+                        break  # Exit loop if successful
+
+                    except HttpResponseError as e:
+                        st.warning(f"Attempt {attempt + 1} failed for {uploaded_file.name}: {e.message}")
+                        time.sleep(retry_delay)
+            if result:
+                extracted_fields = {"Document": uploaded_file.name}
+                if result.documents:
+                    for document in result.documents:
+                        for name, field in document.fields.items():
+                            extracted_fields[name] = field.content
+                else:
+                    st.warning(f"No fields extracted from {uploaded_file.name}. The model may not recognize this layout.")
+                all_extracted_fields.append(extracted_fields)
+            else:
+                st.error(f"Failed to analyze {uploaded_file.name} after {max_retries} attempts.")
+            time.sleep(3)  # Respect rate limits
+
+        if all_extracted_fields:
+            combined_df = pd.DataFrame(all_extracted_fields).fillna("")
+
+            st.subheader("Combined Extracted Fields")
+            st.dataframe(combined_df)
+
+            # CSV download
+            st.download_button(
+                label="Download as CSV",
+                data=combined_df.to_csv(index=False).encode('utf-8'),
+                file_name="combined_extracted_fields.csv",
+                mime="text/csv"
+            )
+
+            # Excel download
+            output = BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                combined_df.to_excel(writer, index=False, sheet_name='Extracted Data')
+            output.seek(0)
+
+            st.download_button(
+                label="Download as Excel",
+                data=output,
+                file_name="combined_extracted_fields.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
